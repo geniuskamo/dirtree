@@ -6,6 +6,12 @@ setup(
     package_dir={"": "src"},
     packages=find_namespace_packages(where="src"),
     install_requires=[],
+    extras_require={
+        'dev': [
+            'pytest>=7.0.0',
+            'pytest-cov>=4.1.0',
+        ],
+    },
     entry_points={
         'console_scripts': [
             'dirtree=src.cli:main',  # Update entry point to use src package
