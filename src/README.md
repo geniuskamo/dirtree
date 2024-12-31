@@ -9,7 +9,7 @@ dirtree/
 │   ├── __init__.py
 │   ├── cli.py
 │   ├── formatters.py
-│   ├── tree_generator.py
+│   └── tree_generator.py
 │   └── README.md
 └── setup.py
 ```
@@ -23,9 +23,23 @@ dirtree/
 
 ## Installation
 
-### For Users
+### From Source
 ```bash
 pip install .
+```
+
+### Binary Distribution
+Pre-built binaries are available for Windows, macOS, and Linux platforms. Download the appropriate binary for your system from the releases page.
+
+To build the binary yourself:
+```bash
+# Install development dependencies first
+pip install -r requirements-dev.txt
+
+# Build binary
+make binary
+
+# Binary will be available in dist/<platform>/
 ```
 
 ### For Developers
@@ -98,6 +112,7 @@ dirtree/
 - `make test` - Run tests
 - `make clean` - Clean build artifacts
 - `make build` - Build distribution packages
+- `make binary` - Build standalone executable
 
 ### Development Dependencies
 Development dependencies are managed in `requirements-dev.txt` and include:
@@ -106,3 +121,14 @@ Development dependencies are managed in `requirements-dev.txt` and include:
 - black - Code formatting
 - isort - Import sorting
 - build/wheel - Package building
+
+### Building Distributions
+- `make build` - Build Python package distribution
+- `make binary` - Build standalone executable
+- `make dist` - Build both package and binary distributions
+
+### Binary Distribution
+The project uses PyInstaller to create standalone executables:
+- Binaries are created for the current platform
+- Output is placed in `dist/<platform>/`
+- Single file executables include all dependencies

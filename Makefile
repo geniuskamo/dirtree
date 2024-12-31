@@ -44,5 +44,12 @@ format:
 build: clean
 	python setup.py sdist bdist_wheel
 
+# Build binary
+binary:
+	python build_binary.py
+
+# Full distribution (includes both package and binary)
+dist: clean build binary
+
 # Default target
-all: clean lint test build
+all: clean lint test dist

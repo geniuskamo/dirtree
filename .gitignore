@@ -43,3 +43,8 @@ htmlcov/
 # Project specific
 *.md.bak
 output.md
+
+# PyInstaller
+*.spec
+build/
+dist/

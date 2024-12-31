@@ -16,11 +16,11 @@ class ConsoleFormatter(TreeFormatter):
 class MarkdownFormatter(TreeFormatter):
     def format_line(self, prefix: str, name: str, is_last: bool) -> str:
         indent = prefix.replace("│", "|").replace(
-            "    ", "&nbsp;&nbsp;&nbsp;&nbsp;")
+            " ", "&nbsp;")
         return f"{indent}{'└── ' if is_last else '├── '}{name}"
 
     def get_header(self) -> str:
-        return "# Directory Structure\n\n```\n"
+        return "# Directory Structure\n"
 
     def get_footer(self) -> str:
         return "```\n"
