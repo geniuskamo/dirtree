@@ -1,6 +1,6 @@
 import os
 from typing import List
-from .formatters import TreeFormatter, ConsoleFormatter
+from src.formatters import TreeFormatter, ConsoleFormatter, MarkdownFormatter
 
 
 class DirectoryTree:

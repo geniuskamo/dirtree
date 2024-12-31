@@ -1,6 +1,6 @@
 import argparse
-from .tree_generator import DirectoryTree
-from .formatters import ConsoleFormatter, MarkdownFormatter
+from src.tree_generator import DirectoryTree  # Update import
+from src.formatters import ConsoleFormatter, MarkdownFormatter  # Update import
 
 
 def main():
