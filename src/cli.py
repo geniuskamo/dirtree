@@ -24,11 +24,16 @@ def main():
         "-o",
         help="Output file (only used with markdown format)"
     )
+    parser.add_argument(
+        "--exclude",
+        help="Comma-separated list of directories to exclude"
+    )
 
     args = parser.parse_args()
 
+    exclude = args.exclude.split(",") if args.exclude else []
     formatter = MarkdownFormatter() if args.format == "markdown" else ConsoleFormatter()
-    tree = DirectoryTree(args.directory, formatter)
+    tree = DirectoryTree(args.directory, formatter, exclude)
     output = "\n".join(tree.generate())
 
     if args.format == "markdown" and args.output:

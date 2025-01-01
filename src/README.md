@@ -20,6 +20,7 @@ dirtree/
 - Permission error handling
 - Sorted directory listings
 - Command-line interface
+- Exclude specific directories from the output
 
 ## Installation
 
@@ -63,6 +64,9 @@ dirtree /path/to/directory --format markdown
 
 # Save to file
 dirtree /path/to/directory --format markdown -o tree.md
+
+# Exclude specific directories
+dirtree /path/to/directory --exclude dir1,dir2
 ```
 
 ## Example Outputs
