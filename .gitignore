@@ -48,3 +48,4 @@ output.md
 *.spec
 build/
 dist/
+cwd.md

@@ -1,7 +1,5 @@
 ├── .
-│   ├── .gitignore
 │   ├── .pytest_cache
-│   │   ├── .gitignore
 │   │   ├── CACHEDIR.TAG
 │   │   ├── README.md
 │       ├── v
@@ -44,7 +42,6 @@
 │   │   ├── test_formatters.py
 │       ├── test_tree_generator.py
     ├── venv
-    │   ├── .gitignore
     │   ├── bin
     │   │   ├── Activate.ps1
     │   │   ├── activate

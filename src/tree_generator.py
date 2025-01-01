@@ -2,7 +2,6 @@ import os
 from typing import List
 from src.formatters import TreeFormatter, ConsoleFormatter, MarkdownFormatter
 
-
 class DirectoryTree:
     def __init__(self, root_dir: str, formatter: TreeFormatter = None, exclude: List[str] = None):
         self.root_dir = root_dir
@@ -40,5 +39,4 @@ class DirectoryTree:
                     new_prefix = prefix + ("    " if is_last else "│   ")
                     self._generate_tree(entry_path, new_prefix, tree)
             except PermissionError:
-                tree.append(self.formatter.format_line(
-                    prefix, "<Permission Denied>", True))
+                tree.append(self.formatter.format_line(prefix, "<Permission Denied>", True))
