@@ -87,10 +87,10 @@ The markdown output includes proper HTML entities for spacing and renders well i
 ```
 .
 ├── src
-&nbsp;&nbsp;&nbsp;&nbsp;├── __init__.py
-&nbsp;&nbsp;&nbsp;&nbsp;├── cli.py
-&nbsp;&nbsp;&nbsp;&nbsp;├── formatters.py
-&nbsp;&nbsp;&nbsp;&nbsp;└── tree_generator.py
+    ├── __init__.py
+    ├── cli.py
+    ├── formatters.py
+    └── tree_generator.py
 └── setup.py
 ```
 

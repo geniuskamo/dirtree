@@ -15,8 +15,7 @@ class ConsoleFormatter(TreeFormatter):
 
 class MarkdownFormatter(TreeFormatter):
     def format_line(self, prefix: str, name: str, is_last: bool) -> str:
-        indent = prefix.replace("│", "|").replace(
-            " ", "&nbsp;")
+        indent = prefix.replace("│", "|").replace(" ", "    ")
         return f"{indent}{'└── ' if is_last else '├── '}{name}"
 
     def get_header(self) -> str:

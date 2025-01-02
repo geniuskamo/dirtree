@@ -12,7 +12,7 @@ def test_console_formatter():
 def test_markdown_formatter():
     formatter = MarkdownFormatter()
     result = formatter.format_line("│   ", "test.txt", False)
-    assert "&nbsp;" in result
+    assert "    " in result
     assert "├── test.txt" in result
     
     assert formatter.get_header().startswith("# Directory")

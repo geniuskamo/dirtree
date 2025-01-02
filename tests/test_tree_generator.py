@@ -17,7 +17,7 @@ def test_directory_tree_with_markdown_formatter(temp_dir):
     
     assert result[0] == "# Directory Structure\n"
     assert result[-1] == "```\n"
-    assert any("&nbsp;" in line for line in result)
+    assert any("    " in line for line in result)
 
 def test_directory_tree_with_empty_directory(empty_dir):
     tree = DirectoryTree(empty_dir)
