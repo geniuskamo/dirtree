@@ -14,18 +14,17 @@ def main():
         help="Directory to generate tree from (default: current directory)"
     )
     parser.add_argument(
-        "--format",
+        "-f", "--format",
         choices=["console", "markdown"],
         default="console",
         help="Output format (default: console)"
     )
     parser.add_argument(
-        "--output",
-        "-o",
+        "-o", "--output",
         help="Output file (only used with markdown format)"
     )
     parser.add_argument(
-        "--exclude",
+        "-e", "--exclude",
         help="Comma-separated list of directories to exclude"
     )
 

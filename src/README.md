@@ -60,13 +60,13 @@ dirtree
 dirtree /path/to/directory
 
 # Generate markdown
-dirtree /path/to/directory --format markdown
+dirtree /path/to/directory --format markdown -f md
 
 # Save to file
 dirtree /path/to/directory --format markdown -o tree.md
 
 # Exclude specific directories
-dirtree /path/to/directory --exclude dir1,dir2
+dirtree /path/to/directory --exclude dir1,dir2 -e dir1,dir2
 ```
 
 ## Example Outputs
