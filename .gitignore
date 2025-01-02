@@ -49,3 +49,4 @@ output.md
 build/
 dist/
 cwd.md
+dirtree.code-workspace
