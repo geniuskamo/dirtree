@@ -15,7 +15,7 @@ dirtree/
 ```
 
 ## Features
-- Console and Markdown output formats
+- Console, Markdown, and JSON output formats
 - Customizable formatting through formatter classes
 - Permission error handling
 - Sorted directory listings
@@ -67,6 +67,9 @@ dirtree /path/to/directory --format markdown -o tree.md
 
 # Exclude specific directories
 dirtree /path/to/directory --exclude dir1,dir2 -e dir1,dir2
+
+# Generate JSON
+dirtree /path/to/directory --format json
 ```
 
 ## Example Outputs
@@ -92,6 +95,20 @@ The markdown output includes proper HTML entities for spacing and renders well i
     ├── formatters.py
     └── tree_generator.py
 └── setup.py
+```
+
+### JSON Output
+The JSON output provides a structured representation of the directory:
+```json
+{
+    "src": {
+        "__init__.py": null,
+        "cli.py": null,
+        "formatters.py": null,
+        "tree_generator.py": null
+    },
+    "setup.py": null
+}
 ```
 
 ## Development

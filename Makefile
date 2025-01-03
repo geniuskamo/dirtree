@@ -25,10 +25,6 @@ clean:
 	find . -name '__pycache__' -delete
 	find . -name '.pytest_cache' -delete
 
-# Run tests
-test:
-	python -m pytest tests/
-
 # Run linting
 lint:
 	flake8 src/
@@ -39,6 +35,10 @@ lint:
 format:
 	black src/
 	isort src/
+
+# Run tests
+test:
+	python -m pytest tests/
 
 # Build distribution
 build: clean

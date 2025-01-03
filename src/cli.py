@@ -1,6 +1,6 @@
 import argparse
 from src.tree_generator import DirectoryTree  # Update import
-from src.formatters import ConsoleFormatter, MarkdownFormatter  # Update import
+from src.formatters import ConsoleFormatter, MarkdownFormatter, JSONFormatter  # Update import
 
 
 def main():
@@ -15,7 +15,7 @@ def main():
     )
     parser.add_argument(
         "-f", "--format",
-        choices=["console", "markdown"],
+        choices=["console", "markdown", "json"],
         default="console",
         help="Output format (default: console)"
     )
@@ -31,7 +31,11 @@ def main():
     args = parser.parse_args()
 
     exclude = args.exclude.split(",") if args.exclude else []
-    formatter = MarkdownFormatter() if args.format == "markdown" else ConsoleFormatter()
+    formatter = {
+        "console": ConsoleFormatter,
+        "markdown": MarkdownFormatter,
+        "json": JSONFormatter
+    }[args.format]()
     tree = DirectoryTree(args.directory, formatter, exclude)
     output = "\n".join(tree.generate())
 

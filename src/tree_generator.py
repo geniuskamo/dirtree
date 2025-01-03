@@ -1,6 +1,6 @@
 import os
 from typing import List
-from src.formatters import TreeFormatter, ConsoleFormatter, MarkdownFormatter
+from src.formatters import TreeFormatter, ConsoleFormatter, MarkdownFormatter, JSONFormatter
 
 class DirectoryTree:
     def __init__(self, root_dir: str, formatter: TreeFormatter = None, exclude: List[str] = None):
@@ -12,6 +12,9 @@ class DirectoryTree:
         tree = []
         if isinstance(self.formatter, MarkdownFormatter):
             tree.append(self.formatter.get_header())
+        if isinstance(self.formatter, JSONFormatter):
+            self._generate_tree(self.root_dir, [], tree)
+            return [self.formatter.get_output()]
         self._generate_tree(self.root_dir, "", tree)
         if isinstance(self.formatter, MarkdownFormatter):
             tree.append(self.formatter.get_footer())
@@ -36,7 +39,13 @@ class DirectoryTree:
                     if any(os.path.commonpath([entry_path, os.path.join(self.root_dir, ex)]) == os.path.join(self.root_dir, ex) for ex in self.exclude):
                         continue
                     is_last = i == len(entries) - 1
-                    new_prefix = prefix + ("    " if is_last else "│   ")
+                    if isinstance(prefix, list):
+                        new_prefix = prefix + [entry]
+                    else:
+                        new_prefix = prefix + ("    " if is_last else "│   ")
                     self._generate_tree(entry_path, new_prefix, tree)
             except PermissionError:
                 tree.append(self.formatter.format_line(prefix, "<Permission Denied>", True))
+        if isinstance(self.formatter, JSONFormatter):
+            path_parts = prefix + [base_name]
+            self.formatter.add_entry(path_parts, os.path.isdir(current_path))
