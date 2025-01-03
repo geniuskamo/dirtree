@@ -72,6 +72,37 @@ dirtree /path/to/directory --exclude dir1,dir2 -e dir1,dir2
 dirtree /path/to/directory --format json
 ```
 
+## Configuration
+
+The tool supports configuration files in YAML format. Create a file named `dirtree.yml`:
+
+```yaml
+# Default output format
+format: console
+
+# Directories to exclude
+exclude:
+  - node_modules
+  - .git
+  - __pycache__
+
+# Enable verbose logging
+verbose: false
+
+# Output file path
+output: tree.txt
+
+# Log file location
+log_file: dirtree.log
+```
+
+Use the configuration file:
+```bash
+dirtree /path/to/directory -c dirtree.yml
+```
+
+Command line arguments override configuration file settings.
+
 ## Example Outputs
 
 ### Console Output

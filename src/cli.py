@@ -4,13 +4,14 @@ import sys
 from pathlib import Path
 from src.tree_generator import DirectoryTree  # Update import
 from src.formatters import ConsoleFormatter, MarkdownFormatter, JSONFormatter  # Update import
+from src.config import load_config
 
-def setup_logging(verbose: bool):
+def setup_logging(verbose: bool, log_file: str = 'dirtree.log'):
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG if verbose else logging.INFO)
     
     # File handler for all levels
-    log_file = Path('dirtree.log')
+    log_file = Path(log_file)
     file_handler = logging.FileHandler(log_file)
     file_handler.setLevel(logging.DEBUG)
     file_formatter = logging.Formatter(
@@ -50,12 +51,11 @@ def main():
     parser.add_argument(
         "-f", "--format",
         choices=["console", "markdown", "json"],
-        default="console",
         help="Output format (default: console)"
     )
     parser.add_argument(
         "-o", "--output",
-        help="Output file (only used with markdown or json format)"
+        help="Output file path"
     )
     parser.add_argument(
         "-e", "--exclude",
@@ -66,32 +66,47 @@ def main():
         action="store_true",
         help="Enable verbose logging to console"
     )
+    parser.add_argument(
+        "-c", "--config",
+        help="Path to configuration file"
+    )
 
     args = parser.parse_args()
     
     try:
-        setup_logging(args.verbose)
-        logger.debug("Command line arguments parsed successfully")
-        logger.debug(f"Directory: {args.directory}")
-        logger.debug(f"Format: {args.format}")
-        logger.debug(f"Output: {args.output}")
-        logger.debug(f"Exclude: {args.exclude}")
+        # Load config file first
+        config = load_config(args.config)
+        
+        # Override config with command line arguments
+        if args.format:
+            config['format'] = args.format
+        if args.output:
+            config['output'] = args.output
+        if args.exclude:
+            config['exclude'] = args.exclude.split(',')
+        if args.verbose:
+            config['verbose'] = True
 
-        exclude = args.exclude.split(",") if args.exclude else []
+        setup_logging(config['verbose'], config['log_file'])
+        logger = logging.getLogger(__name__)
+        
+        logger.debug("Configuration loaded successfully")
+        logger.debug(f"Active configuration: {config}")
+
         formatter = {
             "console": ConsoleFormatter,
             "markdown": MarkdownFormatter,
             "json": JSONFormatter
-        }[args.format]()
+        }[config['format']]()
         
         logger.info(f"Starting tree generation for directory: {args.directory}")
-        tree = DirectoryTree(args.directory, formatter, exclude)
+        tree = DirectoryTree(args.directory, formatter, config['exclude'])
         output = "\n".join(tree.generate())
 
-        if args.output:
-            logger.info(f"Writing output to file: {args.output}")
+        if config['output']:
+            logger.info(f"Writing output to file: {config['output']}")
             try:
-                with open(args.output, "w") as f:
+                with open(config['output'], "w") as f:
                     f.write(output)
                 logger.info("File written successfully")
             except IOError as e:
