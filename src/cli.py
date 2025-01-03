@@ -76,6 +76,11 @@ def main():
         action="store_true",
         help="Disable progress bar"
     )
+    parser.add_argument(
+        "-L", "--follow-links",
+        action="store_true",
+        help="Follow symbolic links"
+    )
 
     args = parser.parse_args()
     
@@ -96,6 +101,9 @@ def main():
         if args.no_progress:
             tqdm.disable = True
 
+        if args.follow_links:
+            config['follow_links'] = True
+
         setup_logging(config['verbose'], config['log_file'])
         logger = logging.getLogger(__name__)
         
@@ -109,7 +117,12 @@ def main():
         }[config['format']]()
         
         logger.info(f"Starting tree generation for directory: {args.directory}")
-        tree = DirectoryTree(args.directory, formatter, config['exclude'])
+        tree = DirectoryTree(
+            args.directory, 
+            formatter, 
+            config['exclude'],
+            follow_symlinks=config.get('follow_links', False)
+        )
         output = "\n".join(tree.generate())
 
         if config['output']:

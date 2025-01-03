@@ -12,6 +12,7 @@ DEFAULT_CONFIG = {
     "output": None,
     "log_file": "dirtree.log",
     "no_progress": False,
+    "follow_links": False,
 }
 
 def load_config(config_file: str = None) -> Dict[str, Any]:
