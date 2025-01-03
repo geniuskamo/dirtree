@@ -1,14 +1,25 @@
-import os
 import logging
-from typing import List, Dict, Set
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import lru_cache
+from typing import Dict, List, Set
+
 from tqdm import tqdm
-from src.formatters import TreeFormatter, ConsoleFormatter, MarkdownFormatter, JSONFormatter
+
+from src.formatters import (ConsoleFormatter, JSONFormatter, MarkdownFormatter,
+                            TreeFormatter)
+
 
 class DirectoryTree:
-    def __init__(self, root_dir: str, formatter: TreeFormatter = None, exclude: List[str] = None, 
-                 follow_symlinks: bool = False, max_workers: int = 4, cache_size: int = 1000):
+    def __init__(
+        self,
+        root_dir: str,
+        formatter: TreeFormatter = None,
+        exclude: List[str] = None,
+        follow_symlinks: bool = False,
+        max_workers: int = 4,
+        cache_size: int = 1000,
+    ):
         self.root_dir = root_dir
         self.formatter = formatter or ConsoleFormatter()
         self.exclude = exclude or []
@@ -38,18 +49,21 @@ class DirectoryTree:
         except PermissionError:
             self.logger.error(f"Permission denied accessing directory: {path}")
         return count
-    
+
     @lru_cache(maxsize=1000)
     def _is_excluded(self, path: str) -> bool:
         """Cached check for excluded paths."""
-        return any(os.path.commonpath([path, os.path.join(self.root_dir, ex)]) == 
-                  os.path.join(self.root_dir, ex) for ex in self.exclude)
+        return any(
+            os.path.commonpath([path, os.path.join(self.root_dir, ex)])
+            == os.path.join(self.root_dir, ex)
+            for ex in self.exclude
+        )
 
     def _scan_directory(self, path: str) -> List[str]:
         """Optimized directory scanning with caching."""
         if path in self._cache:
             return self._cache[path]
-        
+
         try:
             with os.scandir(path) as it:
                 entries = sorted(entry.name for entry in it)
@@ -66,9 +80,9 @@ class DirectoryTree:
             total=self.total_files,
             desc="Generating tree",
             unit="files",
-            disable=None  # Will respect tqdm.disable environment variable
+            disable=None,  # Will respect tqdm.disable environment variable
         )
-        
+
         tree = []
         if isinstance(self.formatter, MarkdownFormatter):
             self.logger.debug("Using Markdown format")
@@ -83,17 +97,21 @@ class DirectoryTree:
             tree.append(self.formatter.get_footer())
         self.logger.info("Tree generation completed successfully")
         self.progress.close()
-        
+
         # Clear caches after generation
         self._cache.clear()
         self._is_excluded.cache_clear()
         self._scanned_dirs.clear()
-        
+
         return tree
 
-    def _generate_tree(self, current_path: str, prefix: str, tree: List[str]) -> List[str]:
+    def _generate_tree(
+        self, current_path: str, prefix: str, tree: List[str]
+    ) -> List[str]:
         """Modified to return a list for parallel processing."""
-        if not os.path.lexists(current_path):  # Use lexists to check for broken symlinks
+        if not os.path.lexists(
+            current_path
+        ):  # Use lexists to check for broken symlinks
             self.logger.error(f"Path does not exist: {current_path}")
             return []
 
@@ -106,14 +124,16 @@ class DirectoryTree:
 
         is_symlink = os.path.islink(current_path)
         is_dir = os.path.isdir(current_path)
-        
+
         if is_symlink:
             link_target = os.readlink(current_path)
             symlink_exists = os.path.exists(current_path)
             self.logger.debug(f"Found symlink: {current_path} -> {link_target}")
-            
+
             if base_name:
-                line = self.formatter.format_line(prefix, f"{base_name} -> {link_target}", False)
+                line = self.formatter.format_line(
+                    prefix, f"{base_name} -> {link_target}", False
+                )
                 if not symlink_exists:
                     line = self.formatter.format_broken_link(line)
                 result.append(line)
@@ -136,13 +156,19 @@ class DirectoryTree:
 
         return result
 
-    def _process_directory(self, current_path: str, prefix: str, tree: List[str]) -> None:
+    def _process_directory(
+        self, current_path: str, prefix: str, tree: List[str]
+    ) -> None:
         try:
             self.logger.debug(f"Processing directory: {current_path}")
             entries = sorted(os.listdir(current_path))
             for i, entry in enumerate(entries):
                 entry_path = os.path.join(current_path, entry)
-                if any(os.path.commonpath([entry_path, os.path.join(self.root_dir, ex)]) == os.path.join(self.root_dir, ex) for ex in self.exclude):
+                if any(
+                    os.path.commonpath([entry_path, os.path.join(self.root_dir, ex)])
+                    == os.path.join(self.root_dir, ex)
+                    for ex in self.exclude
+                ):
                     self.logger.debug(f"Skipping excluded path: {entry_path}")
                     continue
                 is_last = i == len(entries) - 1
@@ -155,10 +181,14 @@ class DirectoryTree:
             self.logger.error(f"Permission denied accessing directory: {current_path}")
             tree.append(self.formatter.format_line(prefix, "<Permission Denied>", True))
         except Exception as e:
-            self.logger.critical(f"Unexpected error processing directory {current_path}: {str(e)}")
+            self.logger.critical(
+                f"Unexpected error processing directory {current_path}: {str(e)}"
+            )
             raise
 
-    def _process_directory_parallel(self, current_path: str, prefix: str, tree: List[str]) -> None:
+    def _process_directory_parallel(
+        self, current_path: str, prefix: str, tree: List[str]
+    ) -> None:
         """Process large directories in parallel."""
         entries = self._scan_directory(current_path)
         if len(entries) > 100:  # Only parallelize for large directories
@@ -173,7 +203,7 @@ class DirectoryTree:
                     futures.append(
                         executor.submit(self._generate_tree, entry_path, new_prefix, [])
                     )
-                
+
                 for future in as_completed(futures):
                     if future.result():
                         tree.extend(future.result())
