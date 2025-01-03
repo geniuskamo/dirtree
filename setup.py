@@ -6,7 +6,8 @@ setup(
     package_dir={"": "src"},
     packages=find_namespace_packages(where="src"),
     install_requires=[
-        'pyyaml>=6.0.1'
+        'pyyaml>=6.0.1',
+        'tqdm>=4.65.0'
     ],
     extras_require={
         'dev': [

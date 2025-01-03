@@ -10,7 +10,8 @@ DEFAULT_CONFIG = {
     "exclude": [],
     "verbose": False,
     "output": None,
-    "log_file": "dirtree.log"
+    "log_file": "dirtree.log",
+    "no_progress": False,
 }
 
 def load_config(config_file: str = None) -> Dict[str, Any]:

@@ -1,6 +1,7 @@
 import os
 import logging
 from typing import List
+from tqdm import tqdm
 from src.formatters import TreeFormatter, ConsoleFormatter, MarkdownFormatter, JSONFormatter
 
 class DirectoryTree:
@@ -12,9 +13,31 @@ class DirectoryTree:
         self.logger.info(f"Initializing DirectoryTree for: {root_dir}")
         self.logger.debug(f"Using formatter: {formatter.__class__.__name__}")
         self.logger.debug(f"Exclusion patterns: {exclude}")
+        self.total_files = 0
+        self.progress = None
+
+    def _count_entries(self, path: str) -> int:
+        """Count total number of entries for progress tracking."""
+        count = 0
+        try:
+            for entry in os.scandir(path):
+                count += 1
+                if entry.is_dir() and entry.name not in self.exclude:
+                    count += self._count_entries(entry.path)
+        except PermissionError:
+            self.logger.warning(f"Permission denied while counting entries in: {path}")
+        return count
 
     def generate(self) -> List[str]:
         self.logger.info(f"Starting tree generation for: {self.root_dir}")
+        self.total_files = self._count_entries(self.root_dir)
+        self.progress = tqdm(
+            total=self.total_files,
+            desc="Generating tree",
+            unit="files",
+            disable=None  # Will respect tqdm.disable environment variable
+        )
+        
         tree = []
         if isinstance(self.formatter, MarkdownFormatter):
             self.logger.debug("Using Markdown format")
@@ -22,11 +45,13 @@ class DirectoryTree:
         if isinstance(self.formatter, JSONFormatter):
             self.logger.debug("Using JSON format")
             self._generate_tree(self.root_dir, [], tree)
+            self.progress.close()
             return [self.formatter.get_output()]
         self._generate_tree(self.root_dir, "", tree)
         if isinstance(self.formatter, MarkdownFormatter):
             tree.append(self.formatter.get_footer())
         self.logger.info("Tree generation completed successfully")
+        self.progress.close()
         return tree
 
     def _generate_tree(self, current_path: str, prefix: str, tree: List[str]) -> None:
@@ -34,6 +59,7 @@ class DirectoryTree:
             self.logger.error(f"Path does not exist: {current_path}")
             return
 
+        self.progress.update(1)
         base_name = os.path.basename(current_path)
         if base_name in self.exclude:
             self.logger.info(f"Skipping excluded directory: {base_name}")

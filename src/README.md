@@ -70,6 +70,9 @@ dirtree /path/to/directory --exclude dir1,dir2 -e dir1,dir2
 
 # Generate JSON
 dirtree /path/to/directory --format json
+
+# Disable progress bar
+dirtree /path/to/directory --no-progress
 ```
 
 ## Configuration
@@ -94,6 +97,9 @@ output: tree.txt
 
 # Log file location
 log_file: dirtree.log
+
+# Disable progress bar
+no_progress: false
 ```
 
 Use the configuration file:

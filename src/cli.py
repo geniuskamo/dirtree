@@ -5,6 +5,7 @@ from pathlib import Path
 from src.tree_generator import DirectoryTree  # Update import
 from src.formatters import ConsoleFormatter, MarkdownFormatter, JSONFormatter  # Update import
 from src.config import load_config
+from tqdm import tqdm
 
 def setup_logging(verbose: bool, log_file: str = 'dirtree.log'):
     logger = logging.getLogger()
@@ -70,6 +71,11 @@ def main():
         "-c", "--config",
         help="Path to configuration file"
     )
+    parser.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="Disable progress bar"
+    )
 
     args = parser.parse_args()
     
@@ -86,6 +92,9 @@ def main():
             config['exclude'] = args.exclude.split(',')
         if args.verbose:
             config['verbose'] = True
+
+        if args.no_progress:
+            tqdm.disable = True
 
         setup_logging(config['verbose'], config['log_file'])
         logger = logging.getLogger(__name__)
