@@ -1,11 +1,14 @@
 import os
 import logging
-from typing import List
+from typing import List, Dict, Set
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from functools import lru_cache
 from tqdm import tqdm
 from src.formatters import TreeFormatter, ConsoleFormatter, MarkdownFormatter, JSONFormatter
 
 class DirectoryTree:
-    def __init__(self, root_dir: str, formatter: TreeFormatter = None, exclude: List[str] = None, follow_symlinks: bool = False):
+    def __init__(self, root_dir: str, formatter: TreeFormatter = None, exclude: List[str] = None, 
+                 follow_symlinks: bool = False, max_workers: int = 4, cache_size: int = 1000):
         self.root_dir = root_dir
         self.formatter = formatter or ConsoleFormatter()
         self.exclude = exclude or []
@@ -17,20 +20,44 @@ class DirectoryTree:
         self.logger.debug(f"Follow symlinks: {follow_symlinks}")
         self.total_files = 0
         self.progress = None
+        self.max_workers = max_workers
+        self._cache: Dict[str, Set[str]] = {}
+        self._scanned_dirs = set()
 
     def _count_entries(self, path: str) -> int:
-        """Count total number of entries for progress tracking."""
+        """Count total files and directories in a directory."""
         count = 0
         try:
-            for entry in os.scandir(path):
-                count += 1
-                if entry.is_dir(follow_symlinks=self.follow_symlinks) and entry.name not in self.exclude:
-                    if entry.is_symlink() and not self.follow_symlinks:
-                        continue
-                    count += self._count_entries(entry.path)
+            with os.scandir(path) as it:
+                for entry in it:
+                    if entry.is_dir(follow_symlinks=False):
+                        count += 1
+                        count += self._count_entries(entry.path)
+                    else:
+                        count += 1
         except PermissionError:
-            self.logger.warning(f"Permission denied while counting entries in: {path}")
+            self.logger.error(f"Permission denied accessing directory: {path}")
         return count
+    
+    @lru_cache(maxsize=1000)
+    def _is_excluded(self, path: str) -> bool:
+        """Cached check for excluded paths."""
+        return any(os.path.commonpath([path, os.path.join(self.root_dir, ex)]) == 
+                  os.path.join(self.root_dir, ex) for ex in self.exclude)
+
+    def _scan_directory(self, path: str) -> List[str]:
+        """Optimized directory scanning with caching."""
+        if path in self._cache:
+            return self._cache[path]
+        
+        try:
+            with os.scandir(path) as it:
+                entries = sorted(entry.name for entry in it)
+                self._cache[path] = entries
+                return entries
+        except PermissionError:
+            self.logger.error(f"Permission denied accessing directory: {path}")
+            return []
 
     def generate(self) -> List[str]:
         self.logger.info(f"Starting tree generation for: {self.root_dir}")
@@ -56,18 +83,26 @@ class DirectoryTree:
             tree.append(self.formatter.get_footer())
         self.logger.info("Tree generation completed successfully")
         self.progress.close()
+        
+        # Clear caches after generation
+        self._cache.clear()
+        self._is_excluded.cache_clear()
+        self._scanned_dirs.clear()
+        
         return tree
 
-    def _generate_tree(self, current_path: str, prefix: str, tree: List[str]) -> None:
+    def _generate_tree(self, current_path: str, prefix: str, tree: List[str]) -> List[str]:
+        """Modified to return a list for parallel processing."""
         if not os.path.lexists(current_path):  # Use lexists to check for broken symlinks
             self.logger.error(f"Path does not exist: {current_path}")
-            return
+            return []
 
         self.progress.update(1)
+        result = []
         base_name = os.path.basename(current_path)
         if base_name in self.exclude:
             self.logger.info(f"Skipping excluded path: {base_name}")
-            return
+            return result
 
         is_symlink = os.path.islink(current_path)
         is_dir = os.path.isdir(current_path)
@@ -81,23 +116,25 @@ class DirectoryTree:
                 line = self.formatter.format_line(prefix, f"{base_name} -> {link_target}", False)
                 if not symlink_exists:
                     line = self.formatter.format_broken_link(line)
-                tree.append(line)
+                result.append(line)
                 self.logger.debug(f"Added symlink to tree: {base_name}")
 
             if is_dir and self.follow_symlinks and symlink_exists:
-                self._process_directory(current_path, prefix, tree)
+                self._process_directory_parallel(current_path, prefix, result)
         else:
             if base_name:
-                tree.append(self.formatter.format_line(prefix, base_name, False))
+                result.append(self.formatter.format_line(prefix, base_name, False))
                 self.logger.debug(f"Added node to tree: {base_name}")
 
             if is_dir:
-                self._process_directory(current_path, prefix, tree)
+                self._process_directory_parallel(current_path, prefix, result)
 
         if isinstance(self.formatter, JSONFormatter):
             path_parts = prefix + [base_name]
             self.formatter.add_entry(path_parts, os.path.isdir(current_path))
             self.logger.debug(f"Added JSON entry: {'/'.join(path_parts)}")
+
+        return result
 
     def _process_directory(self, current_path: str, prefix: str, tree: List[str]) -> None:
         try:
@@ -120,3 +157,25 @@ class DirectoryTree:
         except Exception as e:
             self.logger.critical(f"Unexpected error processing directory {current_path}: {str(e)}")
             raise
+
+    def _process_directory_parallel(self, current_path: str, prefix: str, tree: List[str]) -> None:
+        """Process large directories in parallel."""
+        entries = self._scan_directory(current_path)
+        if len(entries) > 100:  # Only parallelize for large directories
+            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                futures = []
+                for i, entry in enumerate(entries):
+                    entry_path = os.path.join(current_path, entry)
+                    if self._is_excluded(entry_path):
+                        continue
+                    is_last = i == len(entries) - 1
+                    new_prefix = prefix + ("    " if is_last else "│   ")
+                    futures.append(
+                        executor.submit(self._generate_tree, entry_path, new_prefix, [])
+                    )
+                
+                for future in as_completed(futures):
+                    if future.result():
+                        tree.extend(future.result())
+        else:
+            self._process_directory(current_path, prefix, tree)

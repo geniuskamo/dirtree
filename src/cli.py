@@ -81,6 +81,18 @@ def main():
         action="store_true",
         help="Follow symbolic links"
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=4,
+        help="Number of worker threads for parallel processing"
+    )
+    parser.add_argument(
+        "--cache-size",
+        type=int,
+        default=1000,
+        help="Size of the directory cache"
+    )
 
     args = parser.parse_args()
     
@@ -104,6 +116,9 @@ def main():
         if args.follow_links:
             config['follow_links'] = True
 
+        config['workers'] = args.workers
+        config['cache_size'] = args.cache_size
+
         setup_logging(config['verbose'], config['log_file'])
         logger = logging.getLogger(__name__)
         
@@ -121,7 +136,9 @@ def main():
             args.directory, 
             formatter, 
             config['exclude'],
-            follow_symlinks=config.get('follow_links', False)
+            follow_symlinks=config.get('follow_links', False),
+            max_workers=config['workers'],
+            cache_size=config['cache_size']
         )
         output = "\n".join(tree.generate())
 

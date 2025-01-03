@@ -190,3 +190,30 @@ The project uses PyInstaller to create standalone executables:
 - Binaries are created for the current platform
 - Output is placed in `dist/<platform>/`
 - Single file executables include all dependencies
+
+## Performance Optimization
+
+The tool includes several optimizations for large directories:
+
+```bash
+# Use more worker threads for parallel processing
+dirtree /path/to/directory --workers 8
+
+# Adjust cache size for large directories
+dirtree /path/to/directory --cache-size 2000
+```
+
+Configuration file options:
+```yaml
+# Performance settings
+workers: 4        # Number of parallel workers
+cache_size: 1000  # Size of directory cache
+```
+
+### Performance Tips
+
+1. Increase workers for large directories
+2. Adjust cache size based on available memory
+3. Use exclusion patterns to skip unnecessary directories
+4. Disable progress bar for faster processing
+5. Configure logging level appropriately
