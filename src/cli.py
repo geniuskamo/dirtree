@@ -21,7 +21,7 @@ def main():
     )
     parser.add_argument(
         "-o", "--output",
-        help="Output file (only used with markdown format)"
+        help="Output file (only used with markdown or json format)"
     )
     parser.add_argument(
         "-e", "--exclude",
@@ -39,7 +39,7 @@ def main():
     tree = DirectoryTree(args.directory, formatter, exclude)
     output = "\n".join(tree.generate())
 
-    if args.format == "markdown" and args.output:
+    if args.output:
         with open(args.output, "w") as f:
             f.write(output)
     else:
