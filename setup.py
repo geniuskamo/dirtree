@@ -19,5 +19,6 @@ setup(
         'console_scripts': [
             'dirtree=src.cli:main',  # Update entry point to use src package
         ],
-    }
+    },
+    license="MIT"
 )

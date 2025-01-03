@@ -45,7 +45,7 @@ make binary
 
 ### For Developers
 ```bash
-git clone https://github.com/yourusername/dirtree.git
+git clone https://github.com/geniuskamo/dirtree.git
 cd dirtree
 make setup  # Installs package in editable mode and dev dependencies
 ```
@@ -217,3 +217,7 @@ cache_size: 1000  # Size of directory cache
 3. Use exclusion patterns to skip unnecessary directories
 4. Disable progress bar for faster processing
 5. Configure logging level appropriately
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
