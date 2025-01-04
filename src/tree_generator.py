@@ -1,11 +1,21 @@
-import os
 import logging
+import os
 from typing import List
+
 from tqdm import tqdm
-from src.formatters import TreeFormatter, ConsoleFormatter, MarkdownFormatter, JSONFormatter
+
+from src.formatters import (ConsoleFormatter, JSONFormatter, MarkdownFormatter,
+                            TreeFormatter)
+
 
 class DirectoryTree:
-    def __init__(self, root_dir: str, formatter: TreeFormatter = None, exclude: List[str] = None, follow_symlinks: bool = False):
+    def __init__(
+        self,
+        root_dir: str,
+        formatter: TreeFormatter = None,
+        exclude: List[str] = None,
+        follow_symlinks: bool = False,
+    ):
         self.root_dir = root_dir
         self.formatter = formatter or ConsoleFormatter()
         self.exclude = exclude or []
@@ -24,7 +34,10 @@ class DirectoryTree:
         try:
             for entry in os.scandir(path):
                 count += 1
-                if entry.is_dir(follow_symlinks=self.follow_symlinks) and entry.name not in self.exclude:
+                if (
+                    entry.is_dir(follow_symlinks=self.follow_symlinks)
+                    and entry.name not in self.exclude
+                ):
                     if entry.is_symlink() and not self.follow_symlinks:
                         continue
                     count += self._count_entries(entry.path)
@@ -39,9 +52,9 @@ class DirectoryTree:
             total=self.total_files,
             desc="Generating tree",
             unit="files",
-            disable=None  # Will respect tqdm.disable environment variable
+            disable=None,  # Will respect tqdm.disable environment variable
         )
-        
+
         tree = []
         if isinstance(self.formatter, MarkdownFormatter):
             self.logger.debug("Using Markdown format")
@@ -59,7 +72,9 @@ class DirectoryTree:
         return tree
 
     def _generate_tree(self, current_path: str, prefix: str, tree: List[str]) -> None:
-        if not os.path.lexists(current_path):  # Use lexists to check for broken symlinks
+        if not os.path.lexists(
+            current_path
+        ):  # Use lexists to check for broken symlinks
             self.logger.error(f"Path does not exist: {current_path}")
             return
 
@@ -71,14 +86,16 @@ class DirectoryTree:
 
         is_symlink = os.path.islink(current_path)
         is_dir = os.path.isdir(current_path)
-        
+
         if is_symlink:
             link_target = os.readlink(current_path)
             symlink_exists = os.path.exists(current_path)
             self.logger.debug(f"Found symlink: {current_path} -> {link_target}")
-            
+
             if base_name:
-                line = self.formatter.format_line(prefix, f"{base_name} -> {link_target}", False)
+                line = self.formatter.format_line(
+                    prefix, f"{base_name} -> {link_target}", False
+                )
                 if not symlink_exists:
                     line = self.formatter.format_broken_link(line)
                 tree.append(line)
@@ -99,13 +116,19 @@ class DirectoryTree:
             self.formatter.add_entry(path_parts, os.path.isdir(current_path))
             self.logger.debug(f"Added JSON entry: {'/'.join(path_parts)}")
 
-    def _process_directory(self, current_path: str, prefix: str, tree: List[str]) -> None:
+    def _process_directory(
+        self, current_path: str, prefix: str, tree: List[str]
+    ) -> None:
         try:
             self.logger.debug(f"Processing directory: {current_path}")
             entries = sorted(os.listdir(current_path))
             for i, entry in enumerate(entries):
                 entry_path = os.path.join(current_path, entry)
-                if any(os.path.commonpath([entry_path, os.path.join(self.root_dir, ex)]) == os.path.join(self.root_dir, ex) for ex in self.exclude):
+                if any(
+                    os.path.commonpath([entry_path, os.path.join(self.root_dir, ex)])
+                    == os.path.join(self.root_dir, ex)
+                    for ex in self.exclude
+                ):
                     self.logger.debug(f"Skipping excluded path: {entry_path}")
                     continue
                 is_last = i == len(entries) - 1
@@ -118,5 +141,7 @@ class DirectoryTree:
             self.logger.error(f"Permission denied accessing directory: {current_path}")
             tree.append(self.formatter.format_line(prefix, "<Permission Denied>", True))
         except Exception as e:
-            self.logger.critical(f"Unexpected error processing directory {current_path}: {str(e)}")
+            self.logger.critical(
+                f"Unexpected error processing directory {current_path}: {str(e)}"
+            )
             raise

@@ -1,6 +1,7 @@
+import json
 from abc import ABC, abstractmethod
 from typing import List
-import json
+
 
 class TreeFormatter(ABC):
     @abstractmethod
@@ -11,9 +12,11 @@ class TreeFormatter(ABC):
         """Format a broken symlink line."""
         return f"{line} [broken]"
 
+
 class ConsoleFormatter(TreeFormatter):
     def format_line(self, prefix: str, name: str, is_last: bool) -> str:
         return f"{prefix}{'└── ' if is_last else '├── '}{name}"
+
 
 class MarkdownFormatter(TreeFormatter):
     def format_line(self, prefix: str, name: str, is_last: bool) -> str:
@@ -28,6 +31,7 @@ class MarkdownFormatter(TreeFormatter):
 
     def format_broken_link(self, line: str) -> str:
         return f"{line} *[broken]*"
+
 
 class JSONFormatter(TreeFormatter):
     def __init__(self):

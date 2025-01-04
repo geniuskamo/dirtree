@@ -48,6 +48,10 @@ output.md
 *.spec
 build/
 dist/
+
+# misc
 cwd.md
 dirtree.code-workspace
 dirtree.log
+Here are a few recommendations for furth.md
+cwd.txt
