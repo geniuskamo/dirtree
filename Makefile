@@ -1,4 +1,4 @@
-.PHONY: install clean lint test build develop dev-install setup
+.PHONY: install clean lint test build develop dev-install dev-setup
 
 # Development installation
 develop:
@@ -9,7 +9,7 @@ dev-install:
 	pip install -r requirements-dev.txt
 
 # Development setup (combine develop and dev-install)
-setup: develop dev-install
+dev-setup: develop dev-install
 
 # Production installation
 install:

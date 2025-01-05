@@ -1,6 +1,9 @@
 import json
 from abc import ABC, abstractmethod
 from typing import List
+import csv
+import xml.etree.ElementTree as ET
+from html import escape
 
 
 class TreeFormatter(ABC):
@@ -53,3 +56,75 @@ class JSONFormatter(TreeFormatter):
 
     def get_output(self) -> str:
         return json.dumps(self.tree, indent=4)
+
+
+class XMLFormatter(TreeFormatter):
+    def __init__(self):
+        self.root = ET.Element("directory")
+
+    def format_line(self, prefix: str, name: str, is_last: bool) -> str:
+        # XML formatter does not use this method
+        pass
+
+    def add_entry(self, path: List[str], is_dir: bool, symlink_target: str = None):
+        current = self.root
+        for part in path:
+            found = False
+            for child in current:
+                if child.tag == "directory" and child.attrib["name"] == part:
+                    current = child
+                    found = True
+                    break
+            if not found:
+                new_elem = ET.SubElement(current, "directory" if is_dir else "file", name=part)
+                current = new_elem
+
+    def get_output(self) -> str:
+        return ET.tostring(self.root, encoding="unicode")
+
+
+class HTMLFormatter(TreeFormatter):
+    def __init__(self):
+        self.lines = []
+
+    def format_line(self, prefix: str, name: str, is_last: bool) -> str:
+        indent = len(prefix) * "&nbsp;&nbsp;&nbsp;&nbsp;"
+        return f"{indent}{'└── ' if is_last else '├── '}{escape(name)}<br>"
+
+    def add_entry(self, path: List[str], is_dir: bool, symlink_target: str = None):
+        # HTML formatter does not use this method
+        pass
+
+    def get_output(self) -> str:
+        return "<html><body>" + "".join(self.lines) + "</body></html>"
+
+
+class CSVFormatter(TreeFormatter):
+    def __init__(self):
+        self.rows = []
+
+    def format_line(self, prefix: str, name: str, is_last: bool) -> str:
+        # CSV formatter does not use this method
+        pass
+
+    def add_entry(self, path: List[str], is_dir: bool, symlink_target: str = None):
+        self.rows.append(path)
+
+    def get_output(self) -> str:
+        output = []
+        writer = csv.writer(output)
+        writer.writerows(self.rows)
+        return "\n".join(output)
+
+
+class PlainTextFormatter(TreeFormatter):
+    def format_line(self, prefix: str, name: str, is_last: bool) -> str:
+        return f"{prefix}{'└── ' if is_last else '├── '}{name}"
+
+    def add_entry(self, path: List[str], is_dir: bool, symlink_target: str = None):
+        # Plain text formatter does not use this method
+        pass
+
+    def get_output(self) -> str:
+        # Plain text formatter does not use this method
+        pass

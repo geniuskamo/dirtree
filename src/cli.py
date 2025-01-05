@@ -6,9 +6,9 @@ from pathlib import Path
 from tqdm import tqdm
 
 from src.config import load_config
-from src.formatters import (ConsoleFormatter, JSONFormatter,  # Update import
-                            MarkdownFormatter)
-from src.tree_generator import DirectoryTree  # Update import
+from src.formatters import (ConsoleFormatter, JSONFormatter, MarkdownFormatter, 
+                            XMLFormatter, HTMLFormatter, CSVFormatter, PlainTextFormatter)
+from src.tree_generator import DirectoryTree
 
 
 def setup_logging(verbose: bool, log_file: str = "dirtree.log"):
@@ -55,7 +55,7 @@ def main():
     parser.add_argument(
         "-f",
         "--format",
-        choices=["console", "markdown", "json"],
+        choices=["console", "markdown", "json", "xml", "html", "csv", "plaintext"],
         help="Output format (default: console)",
     )
     parser.add_argument("-o", "--output", help="Output file path")
@@ -105,6 +105,10 @@ def main():
             "console": ConsoleFormatter,
             "markdown": MarkdownFormatter,
             "json": JSONFormatter,
+            "xml": XMLFormatter,
+            "html": HTMLFormatter,
+            "csv": CSVFormatter,
+            "plaintext": PlainTextFormatter,
         }[config["format"]]()
 
         logger.info(f"Starting tree generation for directory: {args.directory}")
