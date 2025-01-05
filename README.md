@@ -45,7 +45,7 @@ make binary
 
 ### For Developers
 ```bash
-git clone https://github.com/yourusername/dirtree.git
+git clone https://github.com/geniuskamo/dirtree.git
 cd dirtree
 make setup  # Installs package in editable mode and dev dependencies
 ```
